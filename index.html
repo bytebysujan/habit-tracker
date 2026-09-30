@@ -5,35 +5,38 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Habit Tracker Dashboard</title>
-    <!-- Fonts & Supabase -->
+    <!-- Modern Typography & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --bg-body: #0b0c0e;
-            --bg-surface: #131519;
-            --bg-card: #181b20;
-            --bg-darker: #0f1114;
-            --bg-header: #101216;
-            --border: #262a33;
-            --border-light: #323742;
-            --text-main: #f3f4f6;
-            --text-muted: #8b92a0;
-            --text-dim: #5a6170;
+            --bg-body: #0a0b0e;
+            --bg-surface: #12151b;
+            --bg-card: #181c24;
+            --bg-card-hover: #1f242f;
+            --bg-darker: #0d0f14;
+            --bg-header: #141820;
+            --border: #262c38;
+            --border-light: #373f50;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
             --accent-white: #ffffff;
-            --accent-fill: #e5e7eb;
-            --bar-fill: #e5e7eb;
-            --checked-bg: #e5e7eb;
-            --checked-ink: #111827;
-            --green: #10b981;
-            --amber: #f59e0b;
-            --red: #ef4444;
-            --blue: #3b82f6;
-            --radius-sm: 4px;
-            --radius-md: 8px;
-            --radius-lg: 12px;
+            --accent-green: #10b981;
+            --accent-emerald: #059669;
+            --accent-amber: #f59e0b;
+            --accent-red: #f43f5e;
+            --accent-blue: #38bdf8;
+            --accent-indigo: #6366f1;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 18px;
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.4);
+            --shadow-glow: 0 0 20px rgba(255, 255, 255, 0.08);
             --transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
@@ -46,14 +49,14 @@
         body {
             background-color: var(--bg-body);
             color: var(--text-main);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            font-size: 13px;
-            line-height: 1.4;
-            padding: 12px;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            padding: 16px;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 16px;
             max-width: 1750px;
             margin-inline: auto;
             user-select: none;
@@ -64,38 +67,51 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: var(--bg-surface);
+            background: linear-gradient(135deg, var(--bg-surface), #151922);
             border: 1px solid var(--border);
-            padding: 10px 16px;
+            padding: 12px 20px;
             border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            flex-wrap: wrap;
+            gap: 12px;
         }
 
         .system-title-group {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
         }
 
         .system-title {
-            font-size: 15px;
+            font-size: 17px;
             font-weight: 800;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.08em;
             text-transform: uppercase;
             color: #fff;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+        }
+
+        .system-badge {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+            letter-spacing: 0.05em;
         }
 
         .status-pill {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            font-size: 11px;
+            gap: 8px;
+            font-size: 12px;
             font-weight: 600;
-            padding: 3px 10px;
+            padding: 5px 12px;
             border-radius: 20px;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.04);
             border: 1px solid var(--border);
             color: var(--text-muted);
             cursor: pointer;
@@ -103,30 +119,32 @@
         }
 
         .status-pill:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--border-light);
             color: #fff;
+            transform: translateY(-1px);
         }
 
         .pulse-dot {
-            width: 7px;
-            height: 7px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            background: var(--amber);
+            background: var(--accent-amber);
         }
 
         .pulse-dot.synced {
-            background: var(--green);
-            box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+            background: var(--accent-green);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.8);
         }
 
         .pulse-dot.syncing {
-            background: var(--blue);
+            background: var(--accent-blue);
             animation: pulse 1s infinite;
         }
 
         .pulse-dot.error {
-            background: var(--red);
-            box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+            background: var(--accent-red);
+            box-shadow: 0 0 10px rgba(244, 63, 94, 0.8);
         }
 
         @keyframes pulse {
@@ -137,43 +155,57 @@
         .system-controls {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         .btn-action {
             background: var(--bg-card);
             border: 1px solid var(--border);
             color: var(--text-main);
-            padding: 6px 12px;
-            border-radius: var(--radius-sm);
-            font-size: 12px;
+            padding: 8px 14px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             transition: var(--transition);
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
         }
 
         .btn-action:hover {
-            background: #232832;
+            background: var(--bg-card-hover);
             border-color: var(--border-light);
             color: #fff;
             transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
 
         .btn-action:active {
-            transform: scale(0.98);
+            transform: scale(0.97);
+        }
+
+        .btn-action.primary {
+            background: #ffffff;
+            color: #000000;
+            border-color: #ffffff;
+            font-weight: 700;
+        }
+
+        .btn-action.primary:hover {
+            background: #f1f5f9;
+            box-shadow: 0 0 16px rgba(255, 255, 255, 0.3);
         }
 
         /* Top Analytics Dashboard Grid */
         .top-dashboard {
             display: grid;
-            grid-template-columns: 200px minmax(320px, 1.4fr) minmax(200px, 0.8fr) 300px;
-            gap: 12px;
+            grid-template-columns: 240px minmax(360px, 1.4fr) minmax(240px, 0.8fr) 340px;
+            gap: 14px;
         }
 
-        @media (max-width: 1200px) {
+        @media (max-width: 1380px) {
             .top-dashboard {
                 grid-template-columns: 1fr 1fr;
             }
@@ -188,17 +220,24 @@
         .panel-box {
             background: var(--bg-surface);
             border: 1px solid var(--border);
-            border-radius: var(--radius-md);
+            border-radius: var(--radius-lg);
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+
+        .panel-box:hover {
+            border-color: var(--border-light);
+            box-shadow: var(--shadow-md);
         }
 
         .panel-header {
             background: var(--bg-header);
             border-bottom: 1px solid var(--border);
-            padding: 7px 12px;
-            font-size: 11px;
+            padding: 10px 14px;
+            font-size: 12px;
             font-weight: 700;
             letter-spacing: 0.08em;
             text-transform: uppercase;
@@ -209,7 +248,7 @@
         }
 
         .panel-content {
-            padding: 12px;
+            padding: 14px;
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -220,38 +259,40 @@
         .calendar-settings {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
         }
 
         .setting-row {
             display: flex;
             border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
+            border-radius: var(--radius-md);
             overflow: hidden;
+            background: var(--bg-card);
         }
 
         .setting-label {
             background: var(--bg-darker);
             color: var(--text-muted);
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
-            padding: 6px 8px;
-            min-width: 65px;
+            padding: 8px 12px;
+            min-width: 75px;
             border-right: 1px solid var(--border);
             display: flex;
             align-items: center;
         }
 
         .setting-input, .setting-select {
-            background: var(--bg-card);
+            background: transparent;
             border: none;
             color: #fff;
-            padding: 6px 8px;
-            font-size: 12px;
+            padding: 8px 12px;
+            font-size: 14px;
             font-weight: 600;
             width: 100%;
             outline: none;
             cursor: pointer;
+            font-family: inherit;
         }
 
         .setting-select option {
@@ -259,18 +300,18 @@
             color: #fff;
         }
 
-        /* Daily Progress Chart */
+        /* Charts */
         .chart-container {
             width: 100%;
-            height: 125px;
+            height: 140px;
             position: relative;
         }
 
         /* KPI & Donut Box */
         .donut-kpi-layout {
             display: grid;
-            grid-template-columns: 100px 1fr;
-            gap: 10px;
+            grid-template-columns: 110px 1fr;
+            gap: 14px;
             align-items: center;
             height: 100%;
         }
@@ -278,28 +319,28 @@
         .kpi-stack {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
         }
 
         .kpi-item {
             background: var(--bg-darker);
             border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 4px 6px;
+            border-radius: var(--radius-md);
+            padding: 6px 10px;
             text-align: center;
         }
 
         .kpi-item-title {
-            font-size: 9px;
+            font-size: 10px;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.06em;
             color: var(--text-dim);
             font-weight: 700;
         }
 
         .kpi-item-val {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 700;
             color: #fff;
         }
@@ -311,15 +352,15 @@
             position: relative;
         }
 
-        /* Main Spreadsheet Layout */
+        /* Main Workspace: Spreadsheet & Side Dashboard */
         .main-workspace {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) 340px;
-            gap: 12px;
+            grid-template-columns: minmax(0, 1fr) 380px;
+            gap: 16px;
             align-items: start;
         }
 
-        @media (max-width: 1280px) {
+        @media (max-width: 1380px) {
             .main-workspace {
                 grid-template-columns: 1fr;
             }
@@ -328,8 +369,9 @@
         .tracker-sheet-card {
             background: var(--bg-surface);
             border: 1px solid var(--border);
-            border-radius: var(--radius-md);
+            border-radius: var(--radius-lg);
             overflow: hidden;
+            box-shadow: var(--shadow-sm);
         }
 
         .table-responsive {
@@ -338,11 +380,11 @@
             max-width: 100%;
         }
 
-        /* Spreadsheet Table Styles */
+        /* Spreadsheet Table */
         .sheet-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 11px;
+            font-size: 13px;
             text-align: center;
         }
 
@@ -352,59 +394,68 @@
             white-space: nowrap;
         }
 
-        /* Top multi-tier headers */
+        /* Headers */
         .th-week-group {
             background: var(--bg-darker);
             color: var(--text-muted);
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 700;
-            letter-spacing: 0.06em;
+            letter-spacing: 0.08em;
             text-transform: uppercase;
-            padding: 4px 2px;
+            padding: 6px 4px;
             border-bottom: 1px solid var(--border);
         }
 
         .th-weekday {
             background: var(--bg-header);
             color: var(--text-dim);
-            font-size: 9px;
+            font-size: 11px;
             font-weight: 600;
-            padding: 2px;
-            width: 28px;
-            min-width: 28px;
+            padding: 4px;
+            width: 36px;
+            min-width: 36px;
         }
 
         .th-daynum {
             background: var(--bg-header);
             color: var(--text-main);
             font-weight: 700;
-            font-size: 11px;
-            padding: 2px;
+            font-size: 13px;
+            padding: 4px;
+            font-family: 'JetBrains Mono', monospace;
         }
 
         .th-habit-corner {
             background: var(--bg-darker);
             color: #fff;
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 800;
             letter-spacing: 0.08em;
             text-transform: uppercase;
-            padding: 8px 12px;
+            padding: 10px 16px;
             text-align: left;
             position: sticky;
             left: 0;
             z-index: 10;
-            min-width: 210px;
-            max-width: 250px;
+            min-width: 260px;
+            max-width: 320px;
         }
 
-        /* Habit Rows */
+        /* Habit Row Styles */
+        .habit-row {
+            transition: background 0.15s ease;
+        }
+
+        .habit-row:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
         .td-habit-name {
             background: var(--bg-darker);
             color: #fff;
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 600;
-            padding: 6px 12px;
+            padding: 8px 14px;
             text-align: left;
             position: sticky;
             left: 0;
@@ -413,62 +464,84 @@
             overflow: hidden;
             text-overflow: ellipsis;
             border-right: 2px solid var(--border) !important;
+            height: 44px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 6px;
-            height: 32px;
+            gap: 8px;
         }
 
-        .habit-actions {
-            display: none;
+        .habit-title-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .habit-title-text:hover {
+            text-decoration: underline;
+        }
+
+        .habit-row-actions {
+            display: inline-flex;
             gap: 4px;
+            opacity: 0.3;
+            transition: opacity 0.2s ease;
         }
 
-        .editing-mode .habit-actions {
-            display: flex;
+        .habit-row:hover .habit-row-actions {
+            opacity: 1;
         }
 
-        .btn-mini {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: #fff;
-            border-radius: 3px;
-            width: 18px;
-            height: 18px;
-            font-size: 10px;
+        .btn-mini-action {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            border-radius: 4px;
+            width: 22px;
+            height: 22px;
+            font-size: 11px;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            transition: var(--transition);
         }
 
-        .btn-mini:hover {
+        .btn-mini-action:hover {
             background: rgba(255, 255, 255, 0.25);
+            color: #fff;
+            transform: scale(1.1);
         }
 
+        .btn-mini-action.delete:hover {
+            background: var(--accent-red);
+            border-color: var(--accent-red);
+        }
+
+        /* Checkbox Cells */
         .td-check-cell {
             background: var(--bg-surface);
-            height: 32px;
-            min-width: 28px;
-            max-width: 28px;
+            height: 44px;
+            min-width: 36px;
+            max-width: 36px;
             position: relative;
             cursor: pointer;
             transition: background 0.15s ease;
         }
 
         .td-check-cell:hover {
-            background: rgba(255, 255, 255, 0.04);
+            background: rgba(255, 255, 255, 0.05);
         }
 
-        /* Custom Animated Notion-style Checkbox */
+        /* Animated High-End Checkbox */
         .habit-chk {
             appearance: none;
             -webkit-appearance: none;
-            width: 16px;
-            height: 16px;
-            border: 1.5px solid #4b5262;
-            border-radius: 3px;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #475569;
+            border-radius: 5px;
             background: transparent;
             cursor: pointer;
             display: inline-flex;
@@ -480,32 +553,72 @@
         }
 
         .habit-chk:hover {
-            border-color: #8b92a0;
-            transform: scale(1.1);
+            border-color: #cbd5e1;
+            transform: scale(1.12);
         }
 
         .habit-chk:checked {
-            background: #fff;
-            border-color: #fff;
+            background: #ffffff;
+            border-color: #ffffff;
             transform: scale(1.05);
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
         }
 
         .habit-chk:checked::after {
             content: '';
-            width: 4px;
-            height: 8px;
-            border: solid #000;
-            border-width: 0 2px 2px 0;
+            width: 5px;
+            height: 10px;
+            border: solid #090a0f;
+            border-width: 0 2.5px 2.5px 0;
             transform: rotate(45deg) translate(-1px, -1px);
             display: block;
-            animation: checkPop 0.2s ease-out;
+            animation: popCheck 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        @keyframes checkPop {
+        @keyframes popCheck {
             0% { transform: rotate(45deg) translate(-1px, -1px) scale(0); }
-            80% { transform: rotate(45deg) translate(-1px, -1px) scale(1.2); }
+            70% { transform: rotate(45deg) translate(-1px, -1px) scale(1.3); }
             100% { transform: rotate(45deg) translate(-1px, -1px) scale(1); }
+        }
+
+        /* Quick Add Row in Table */
+        .quick-add-row td {
+            background: var(--bg-darker);
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        .quick-add-input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .quick-add-input {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 6px 12px;
+            font-size: 13px;
+            color: #fff;
+            width: 220px;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .quick-add-input:focus {
+            border-color: #fff;
+        }
+
+        .quick-add-btn {
+            background: #fff;
+            color: #000;
+            border: none;
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
         }
 
         /* Wellness Rows */
@@ -516,9 +629,9 @@
         .wellness-header {
             background: var(--bg-header) !important;
             color: var(--text-muted) !important;
-            font-size: 11px !important;
+            font-size: 12px !important;
             font-weight: 700 !important;
-            padding: 6px 12px !important;
+            padding: 8px 16px !important;
             text-align: left;
             position: sticky;
             left: 0;
@@ -528,13 +641,13 @@
 
         .wellness-input {
             width: 100%;
-            height: 28px;
+            height: 36px;
             background: transparent;
             border: none;
             color: #fff;
             text-align: center;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
+            font-size: 13px;
             outline: none;
         }
 
@@ -542,40 +655,40 @@
             background: rgba(255, 255, 255, 0.08);
         }
 
-        /* Right Side Sidebar (Analysis & Top Habits) */
+        /* Side Dashboard (Analysis & Top Habits) */
         .side-dashboard {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 16px;
         }
 
         .analysis-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 11px;
+            font-size: 13px;
         }
 
         .analysis-table th {
             background: var(--bg-header);
             color: var(--text-dim);
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
-            padding: 6px 8px;
+            padding: 8px 10px;
             border-bottom: 1px solid var(--border);
             text-align: left;
         }
 
         .analysis-table td {
-            padding: 6px 8px;
+            padding: 8px 10px;
             border-bottom: 1px solid var(--border);
             color: var(--text-main);
         }
 
         .progress-track {
             background: var(--bg-darker);
-            border-radius: 2px;
-            height: 12px;
+            border-radius: 4px;
+            height: 14px;
             width: 100%;
             overflow: hidden;
             position: relative;
@@ -583,41 +696,43 @@
         }
 
         .progress-fill {
-            background: #fff;
+            background: #ffffff;
             height: 100%;
-            border-radius: 2px;
+            border-radius: 3px;
             transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
         }
 
         /* Top Habits Ranking */
         .ranking-list {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
         }
 
         .ranking-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 6px 8px;
+            padding: 8px 12px;
             background: var(--bg-darker);
             border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-size: 12px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
             transition: var(--transition);
         }
 
         .ranking-item:hover {
             border-color: var(--border-light);
-            background: #191c22;
+            background: var(--bg-card);
+            transform: translateX(2px);
         }
 
         .ranking-rank {
             font-family: 'JetBrains Mono', monospace;
-            font-weight: 700;
+            font-weight: 800;
             color: var(--text-dim);
-            width: 20px;
+            width: 24px;
         }
 
         .ranking-name {
@@ -626,7 +741,7 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            padding-right: 8px;
+            padding-right: 10px;
         }
 
         .ranking-percent {
@@ -638,11 +753,11 @@
         /* Bottom Workbook Month Tabs */
         .workbook-tabs {
             display: flex;
-            gap: 2px;
+            gap: 4px;
             background: var(--bg-surface);
             border: 1px solid var(--border);
-            padding: 6px 8px;
-            border-radius: var(--radius-md);
+            padding: 8px 10px;
+            border-radius: var(--radius-lg);
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
         }
@@ -651,40 +766,41 @@
             background: transparent;
             border: none;
             color: var(--text-muted);
-            padding: 6px 14px;
-            font-size: 11px;
+            padding: 8px 16px;
+            font-size: 13px;
             font-weight: 600;
-            border-radius: var(--radius-sm);
+            border-radius: var(--radius-md);
             cursor: pointer;
             white-space: nowrap;
             transition: var(--transition);
+            font-family: inherit;
         }
 
         .tab-btn:hover {
             color: #fff;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.06);
         }
 
         .tab-btn.active {
-            background: #fff;
-            color: #000;
-            font-weight: 700;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+            background: #ffffff;
+            color: #000000;
+            font-weight: 800;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
         }
 
-        /* Modal Dialog */
+        /* Modals */
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(5px);
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 1000;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.2s ease;
+            transition: opacity 0.25s ease;
             padding: 16px;
         }
 
@@ -696,43 +812,96 @@
         .modal-dialog {
             background: var(--bg-surface);
             border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            max-width: 540px;
+            border-radius: var(--radius-xl);
+            max-width: 580px;
             width: 100%;
-            padding: 20px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            padding: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+            max-height: 88vh;
+            overflow-y: auto;
         }
 
         .modal-dialog h3 {
-            font-size: 16px;
-            font-weight: 700;
-            margin-bottom: 10px;
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 12px;
             color: #fff;
         }
 
         .modal-dialog p {
             color: var(--text-muted);
-            font-size: 12px;
-            margin-bottom: 12px;
+            font-size: 13px;
+            margin-bottom: 14px;
         }
 
-        .sql-snippet {
+        .manage-habit-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
             background: var(--bg-darker);
             border: 1px solid var(--border);
-            padding: 10px;
+            padding: 8px 12px;
+            border-radius: var(--radius-md);
+            margin-bottom: 8px;
+        }
+
+        .manage-input {
+            flex: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 6px 10px;
             border-radius: var(--radius-sm);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            color: #e5e7eb;
-            overflow-x: auto;
-            white-space: pre;
+            font-size: 13px;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .manage-input:focus {
+            border-color: #fff;
+        }
+
+        .emoji-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
             margin-bottom: 14px;
+        }
+
+        .emoji-chip {
+            background: var(--bg-darker);
+            border: 1px solid var(--border);
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .emoji-chip:hover {
+            background: var(--bg-card);
+            transform: scale(1.15);
         }
 
         .modal-footer {
             display: flex;
             justify-content: flex-end;
-            gap: 8px;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .sql-snippet {
+            background: var(--bg-darker);
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: var(--radius-md);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: #e2e8f0;
+            overflow-x: auto;
+            white-space: pre;
+            margin-bottom: 16px;
         }
     </style>
 </head>
@@ -744,14 +913,15 @@
             <div class="system-title">
                 ⚡ Habit Tracker
             </div>
-            <div class="status-pill" id="cloud-pill" title="Click to view cloud connection status">
+            <span class="system-badge">PRO DASHBOARD</span>
+            <div class="status-pill" id="cloud-pill" title="Supabase Cloud Connection Status">
                 <span class="pulse-dot" id="cloud-dot"></span>
-                <span id="cloud-label">Connecting to Supabase...</span>
+                <span id="cloud-label">Connecting to Cloud...</span>
             </div>
         </div>
         <div class="system-controls">
-            <button class="btn-action" id="btn-add-habit">+ Add Habit</button>
-            <button class="btn-action" id="btn-edit-mode">✏️ Edit Habits</button>
+            <button class="btn-action primary" id="btn-quick-add">+ Add Habit</button>
+            <button class="btn-action" id="btn-manage-habits">⚙️ Manage Habits</button>
             <button class="btn-action" id="btn-sync-now">🔄 Sync Now</button>
         </div>
     </header>
@@ -779,9 +949,9 @@
         <div class="panel-box">
             <div class="panel-header">
                 <span>Daily Progress</span>
-                <span id="label-daily-pct" style="font-family:'JetBrains Mono', monospace; color:#fff;">0%</span>
+                <span id="label-daily-pct" style="font-family:'JetBrains Mono', monospace; color:#fff; font-weight:700;">0%</span>
             </div>
-            <div class="panel-content" style="padding: 6px 12px 2px;">
+            <div class="panel-content" style="padding: 6px 14px 4px;">
                 <div class="chart-container" id="daily-chart-svg"></div>
             </div>
         </div>
@@ -789,7 +959,7 @@
         <!-- Weekly Progress Bar Chart -->
         <div class="panel-box">
             <div class="panel-header">Weekly Progress</div>
-            <div class="panel-content" style="padding: 6px 12px 2px;">
+            <div class="panel-content" style="padding: 6px 14px 4px;">
                 <div class="chart-container" id="weekly-chart-svg"></div>
             </div>
         </div>
@@ -805,7 +975,7 @@
                             <div class="kpi-item-val" id="kpi-goal">0</div>
                         </div>
                         <div class="kpi-item">
-                            <div class="kpi-item-title">Completed</div>
+                            <div class="kpi-item-title">Done</div>
                             <div class="kpi-item-val" id="kpi-completed">0</div>
                         </div>
                         <div class="kpi-item">
@@ -834,8 +1004,8 @@
         <aside class="side-dashboard">
             <!-- Habit Analysis Table -->
             <div class="panel-box">
-                <div class="panel-header">Analysis</div>
-                <div class="table-responsive" style="max-height: 280px;">
+                <div class="panel-header">Progress Analysis</div>
+                <div class="table-responsive" style="max-height: 320px;">
                     <table class="analysis-table" id="analysis-table">
                         <!-- Populated dynamically via JS -->
                     </table>
@@ -845,7 +1015,7 @@
             <!-- Top 10 Habits -->
             <div class="panel-box">
                 <div class="panel-header">Top 10 Habits</div>
-                <div class="panel-content" style="padding: 8px;">
+                <div class="panel-content" style="padding: 10px;">
                     <div class="ranking-list" id="ranking-list">
                         <!-- Populated dynamically via JS -->
                     </div>
@@ -859,12 +1029,44 @@
         <!-- Generated via JS -->
     </footer>
 
-    <!-- Supabase Setup & Help Modal -->
+    <!-- Manage Habits Modal -->
+    <div class="modal-overlay" id="modal-manage-habits">
+        <div class="modal-dialog">
+            <h3>⚙️ Manage Habits</h3>
+            <p>Add, edit habit names, reorder, or remove habits below.</p>
+            
+            <div style="margin-bottom: 14px;">
+                <label style="font-size: 12px; font-weight: 700; color: var(--text-dim); text-transform: uppercase;">Quick Add Emoji Suggestions:</label>
+                <div class="emoji-chips" id="emoji-chips">
+                    <span class="emoji-chip">⏰ Wake 05:00</span>
+                    <span class="emoji-chip">💪 Gym Workout</span>
+                    <span class="emoji-chip">📖 Reading</span>
+                    <span class="emoji-chip">🧘 Meditation</span>
+                    <span class="emoji-chip">💧 3L Water</span>
+                    <span class="emoji-chip">🚶 10k Steps</span>
+                    <span class="emoji-chip">🥦 Clean Diet</span>
+                    <span class="emoji-chip">📵 No Social Media</span>
+                    <span class="emoji-chip">💻 Coding / Projects</span>
+                    <span class="emoji-chip">✍️ Journaling</span>
+                </div>
+            </div>
+
+            <div id="manage-habits-list">
+                <!-- Populated dynamically -->
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-action" id="btn-add-modal-habit">+ Add Habit Row</button>
+                <button class="btn-action primary" id="btn-close-manage">Save & Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase Setup Modal -->
     <div class="modal-overlay" id="modal-supabase">
         <div class="modal-dialog">
             <h3>☁️ Supabase Cloud Integration</h3>
-            <p>Your habit tracker seamlessly syncs to your personal cloud database.</p>
-            <p>Database URL: <strong>https://eoruizcgzwlrlqiepljt.supabase.co</strong></p>
+            <p>Your habit tracker is connected to Supabase for real-time cloud data storage.</p>
             <div class="sql-snippet" id="sql-snippet">CREATE TABLE IF NOT EXISTS public.habit_tracker (
     id TEXT PRIMARY KEY,
     data JSONB NOT NULL DEFAULT '{}'::jsonb,
@@ -877,12 +1079,12 @@ USING (true) WITH CHECK (true);
 ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
             <div class="modal-footer">
                 <button class="btn-action" id="btn-copy-sql">📋 Copy SQL</button>
-                <button class="btn-action" id="btn-close-modal" style="background:#fff; color:#000;">Close</button>
+                <button class="btn-action primary" id="btn-close-cloud-modal">Close</button>
             </div>
         </div>
     </div>
 
-    <!-- Application Script -->
+    <!-- Application Logic -->
     <script>
         // Supabase Cloud Configuration
         const SUPABASE_URL = "https://eoruizcgzwlrlqiepljt.supabase.co";
@@ -921,7 +1123,6 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
 
         // State Management
         let S = loadLocalState();
-        let isEditing = false;
         const today = new Date();
         let currentYear = today.getFullYear();
         let currentMonth = today.getMonth();
@@ -966,7 +1167,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
                 return;
             }
 
-            updateCloudIndicator('syncing', 'Syncing with Cloud...');
+            updateCloudIndicator('syncing', 'Syncing...');
             try {
                 const { data, error } = await sbClient
                     .from('habit_tracker')
@@ -985,7 +1186,6 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
                     renderAll();
                     updateCloudIndicator('synced', '☁️ Cloud Synced');
                 } else {
-                    // Push local state if cloud record is empty
                     await pushToSupabase();
                 }
             } catch (err) {
@@ -1055,7 +1255,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
         const daysInCurrentMonth = () => new Date(currentYear, currentMonth + 1, 0).getDate();
         const getChecks = (habitId) => (S.checks && S.checks[`${ymKey()}|${habitId}`]) || [];
 
-        // Core Calculation & Stats
+        // Calculation & Stats
         function calculateStats() {
             const totalDays = daysInCurrentMonth();
             const habits = S.habits || [];
@@ -1072,7 +1272,6 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
             const totalLeft = Math.max(0, totalGoal - totalCompleted);
             const overallPct = totalGoal ? (totalCompleted / totalGoal) : 0;
 
-            // Daily completion %
             const dailyStats = [];
             for (let d = 1; d <= totalDays; d++) {
                 const dayChecked = habits.filter(h => getChecks(h.id).includes(d)).length;
@@ -1080,7 +1279,6 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
                 dailyStats.push({ day: d, pct: dayPct });
             }
 
-            // Weekly completion %
             const weeklyStats = [];
             const weeksCount = Math.ceil(totalDays / 7);
             for (let w = 0; w < weeksCount; w++) {
@@ -1112,94 +1310,91 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
         function renderDashboard() {
             const stats = calculateStats();
 
-            // 1. Update KPIs
             document.getElementById('kpi-goal').textContent = stats.totalGoal;
             document.getElementById('kpi-completed').textContent = stats.totalCompleted;
             document.getElementById('kpi-left').textContent = stats.totalLeft;
             document.getElementById('label-daily-pct').textContent = `${(stats.overallPct * 100).toFixed(1)}%`;
 
-            // 2. Render Donut Chart
-            const r = 40, circ = 2 * Math.PI * r;
+            // Donut Chart
+            const r = 44, circ = 2 * Math.PI * r;
             const completedOffset = circ * stats.overallPct;
             document.getElementById('donut-svg').innerHTML = `
-                <svg width="110" height="110" viewBox="0 0 110 110">
-                    <circle cx="55" cy="55" r="${r}" fill="none" stroke="var(--bg-darker)" stroke-width="18"/>
-                    <circle cx="55" cy="55" r="${r}" fill="none" stroke="#e5e7eb" stroke-width="18"
+                <svg width="120" height="120" viewBox="0 0 120 120">
+                    <circle cx="60" cy="60" r="${r}" fill="none" stroke="var(--bg-darker)" stroke-width="18"/>
+                    <circle cx="60" cy="60" r="${r}" fill="none" stroke="#ffffff" stroke-width="18"
                         stroke-dasharray="${completedOffset} ${circ}"
                         stroke-dashoffset="0"
-                        transform="rotate(-90 55 55)"
-                        style="transition: stroke-dasharray 0.6s ease;"/>
-                    <text x="55" y="53" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="14" font-weight="700" fill="#fff">${(stats.overallPct * 100).toFixed(1)}%</text>
-                    <text x="55" y="66" text-anchor="middle" font-size="8" font-weight="700" fill="var(--text-dim)" letter-spacing="0.05em">COMPLETED</text>
+                        transform="rotate(-90 60 60)"
+                        style="transition: stroke-dasharray 0.6s cubic-bezier(0.16, 1, 0.3, 1);"/>
+                    <text x="60" y="58" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="16" font-weight="700" fill="#fff">${(stats.overallPct * 100).toFixed(1)}%</text>
+                    <text x="60" y="73" text-anchor="middle" font-size="9" font-weight="700" fill="var(--text-dim)" letter-spacing="0.06em">PROGRESS</text>
                 </svg>
             `;
 
-            // 3. Render Daily Progress Bar Chart
+            // Daily Progress Bar Chart
             const n = stats.totalDays;
-            const chartWidth = n * 18;
-            let dailySvg = `<svg viewBox="0 0 ${chartWidth} 115" width="100%" height="100%" preserveAspectRatio="none">`;
+            const chartWidth = n * 20;
+            let dailySvg = `<svg viewBox="0 0 ${chartWidth} 130" width="100%" height="100%" preserveAspectRatio="none">`;
             
-            // Grid lines (0%, 25%, 50%, 75%, 100%)
             [0, 0.25, 0.5, 0.75, 1].forEach(lvl => {
-                const y = 95 - lvl * 80;
+                const y = 105 - lvl * 90;
                 dailySvg += `<line x1="0" x2="${chartWidth}" y1="${y}" y2="${y}" stroke="var(--border)" stroke-dasharray="${lvl === 0 ? '0' : '2,2'}" stroke-width="1"/>`;
             });
 
-            // Bars
             stats.dailyStats.forEach((st, idx) => {
-                const x = idx * 18 + 2;
-                const barH = st.pct * 80;
-                const y = 95 - barH;
+                const x = idx * 20 + 2;
+                const barH = st.pct * 90;
+                const y = 105 - barH;
                 const dateObj = new Date(currentYear, currentMonth, st.day);
                 const dayInitial = WEEKDAYS[dateObj.getDay()];
                 
                 dailySvg += `
-                    <rect x="${x}" y="${y}" width="14" height="${barH}" rx="2" fill="#fff" opacity="${st.pct > 0 ? 0.9 : 0.1}">
+                    <rect x="${x}" y="${y}" width="16" height="${barH}" rx="3" fill="#ffffff" opacity="${st.pct > 0 ? 0.95 : 0.12}">
                         <title>Day ${st.day} (${dayInitial}): ${(st.pct * 100).toFixed(0)}%</title>
                     </rect>
-                    <text x="${x + 7}" y="108" font-size="7.5" font-family="'JetBrains Mono', monospace" font-weight="600" text-anchor="middle" fill="var(--text-dim)">${st.day}</text>
+                    <text x="${x + 8}" y="122" font-size="9" font-family="'JetBrains Mono', monospace" font-weight="600" text-anchor="middle" fill="var(--text-dim)">${st.day}</text>
                 `;
             });
             dailySvg += '</svg>';
             document.getElementById('daily-chart-svg').innerHTML = dailySvg;
 
-            // 4. Render Weekly Progress Bar Chart
+            // Weekly Progress Bar Chart
             const wCount = stats.weeklyStats.length;
-            const wWidth = wCount * 50;
-            let weeklySvg = `<svg viewBox="0 0 ${wWidth} 115" width="100%" height="100%" preserveAspectRatio="none">`;
+            const wWidth = wCount * 60;
+            let weeklySvg = `<svg viewBox="0 0 ${wWidth} 130" width="100%" height="100%" preserveAspectRatio="none">`;
             [0, 0.5, 1].forEach(lvl => {
-                const y = 95 - lvl * 80;
+                const y = 105 - lvl * 90;
                 weeklySvg += `<line x1="0" x2="${wWidth}" y1="${y}" y2="${y}" stroke="var(--border)" stroke-width="1"/>`;
             });
             stats.weeklyStats.forEach((ws, idx) => {
-                const x = idx * 50 + 10;
-                const barH = ws.pct * 80;
-                const y = 95 - barH;
+                const x = idx * 60 + 10;
+                const barH = ws.pct * 90;
+                const y = 105 - barH;
                 weeklySvg += `
-                    <rect x="${x}" y="${y}" width="30" height="${barH}" rx="2" fill="#fff" opacity="${ws.pct > 0 ? 0.95 : 0.1}">
+                    <rect x="${x}" y="${y}" width="38" height="${barH}" rx="3" fill="#ffffff" opacity="${ws.pct > 0 ? 0.95 : 0.12}">
                         <title>Week ${ws.week}: ${(ws.pct * 100).toFixed(1)}%</title>
                     </rect>
-                    <text x="${x + 15}" y="108" font-size="8.5" font-weight="700" text-anchor="middle" fill="var(--text-dim)">W${ws.week}</text>
+                    <text x="${x + 19}" y="122" font-size="10" font-weight="700" text-anchor="middle" fill="var(--text-dim)">W${ws.week}</text>
                 `;
             });
             weeklySvg += '</svg>';
             document.getElementById('weekly-chart-svg').innerHTML = weeklySvg;
 
-            // 5. Render Analysis Table
+            // Analysis Table
             let analysisHtml = `
                 <tr>
-                    <th style="min-width:110px;">Habit</th>
+                    <th style="min-width:130px;">Habit</th>
                     <th style="text-align:center;">Goal</th>
                     <th style="text-align:center;">Actual</th>
                     <th style="text-align:center;">Left</th>
-                    <th style="width:70px;">Progress</th>
+                    <th style="width:80px;">Progress</th>
                     <th style="text-align:right;">%</th>
                 </tr>
             `;
             stats.habitStats.forEach(hs => {
                 analysisHtml += `
                     <tr>
-                        <td style="font-weight:600; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${hs.habit.name}</td>
+                        <td style="font-weight:600; max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${hs.habit.name}">${hs.habit.name}</td>
                         <td style="text-align:center; font-family:'JetBrains Mono', monospace;">${stats.totalDays}</td>
                         <td style="text-align:center; font-family:'JetBrains Mono', monospace; font-weight:700;">${hs.count}</td>
                         <td style="text-align:center; font-family:'JetBrains Mono', monospace; color:var(--text-dim);">${hs.left}</td>
@@ -1214,7 +1409,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
             });
             document.getElementById('analysis-table').innerHTML = analysisHtml;
 
-            // 6. Render Top 10 Habits Ranking
+            // Top 10 Habits Ranking
             const topList = [...stats.habitStats].sort((a, b) => b.count - a.count).slice(0, 10);
             let rankingHtml = '';
             topList.forEach((item, i) => {
@@ -1245,13 +1440,13 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
             let html = `<thead>`;
             
             // Header Row 1: Week groupings
-            html += `<tr><th rowspan="3" class="th-habit-corner">My Habits</th>`;
+            html += `<tr><th rowspan="3" class="th-habit-corner">My Habits (${habits.length})</th>`;
             weekGroups.forEach(w => {
                 html += `<th colspan="${w.span}" class="th-week-group">Week ${w.weekNum}</th>`;
             });
             html += `</tr>`;
 
-            // Header Row 2: Weekday initials (Su, Mo, Tu...)
+            // Header Row 2: Weekday initials
             html += `<tr>`;
             for (let d = 1; d <= totalDays; d++) {
                 const dow = WEEKDAYS[new Date(currentYear, currentMonth, d).getDay()];
@@ -1259,7 +1454,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
             }
             html += `</tr>`;
 
-            // Header Row 3: Day numbers (1, 2, 3...)
+            // Header Row 3: Day numbers
             html += `<tr>`;
             for (let d = 1; d <= totalDays; d++) {
                 html += `<th class="th-daynum">${d}</th>`;
@@ -1269,13 +1464,13 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
             // Habit Rows
             habits.forEach(h => {
                 const checks = getChecks(h.id);
-                html += `<tr>`;
+                html += `<tr class="habit-row">`;
                 html += `
                     <td class="td-habit-name">
-                        <span style="overflow:hidden; text-overflow:ellipsis;">${h.name}</span>
-                        <div class="habit-actions">
-                            <button class="btn-mini" data-action="rename" data-id="${h.id}" title="Rename">✎</button>
-                            <button class="btn-mini" data-action="delete" data-id="${h.id}" title="Delete">×</button>
+                        <span class="habit-title-text" data-rename-id="${h.id}" title="Click to rename">${h.name}</span>
+                        <div class="habit-row-actions">
+                            <button class="btn-mini-action" data-action="rename" data-id="${h.id}" title="Rename">✏️</button>
+                            <button class="btn-mini-action delete" data-action="delete" data-id="${h.id}" title="Delete">🗑️</button>
                         </div>
                     </td>
                 `;
@@ -1289,6 +1484,21 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
                 }
                 html += `</tr>`;
             });
+
+            // Quick Add Habit Table Row
+            html += `
+                <tr class="quick-add-row">
+                    <td class="td-habit-name" style="background:var(--bg-darker); border-right:2px solid var(--border)!important;">
+                        <div class="quick-add-input-group">
+                            <input type="text" id="inline-new-habit" class="quick-add-input" placeholder="+ Add a new habit...">
+                            <button id="btn-inline-add" class="quick-add-btn">Add</button>
+                        </div>
+                    </td>
+                    <td colspan="${totalDays}" style="background:var(--bg-darker); color:var(--text-dim); font-size:12px; text-align:left; padding-left:14px;">
+                        Tip: Click on any habit name or ✏️ to rename it anytime.
+                    </td>
+                </tr>
+            `;
 
             // Overall Wellness Header Row
             html += `
@@ -1328,10 +1538,23 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
             html += `</tr></tbody>`;
 
             const sheetEl = document.getElementById('habits-sheet');
-            if (sheetEl) {
-                sheetEl.innerHTML = html;
-                if (isEditing) sheetEl.classList.add('editing-mode');
-                else sheetEl.classList.remove('editing-mode');
+            if (sheetEl) sheetEl.innerHTML = html;
+
+            // Bind inline add event
+            const inlineBtn = document.getElementById('btn-inline-add');
+            const inlineInput = document.getElementById('inline-new-habit');
+            if (inlineBtn && inlineInput) {
+                const handleInlineAdd = () => {
+                    const val = inlineInput.value.trim();
+                    if (val) {
+                        addHabit(val);
+                        inlineInput.value = '';
+                    }
+                };
+                inlineBtn.onclick = handleInlineAdd;
+                inlineInput.onkeydown = (e) => {
+                    if (e.key === 'Enter') handleInlineAdd();
+                };
             }
         }
 
@@ -1345,13 +1568,53 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
             `).join('');
         }
 
+        function renderManageModal() {
+            const listEl = document.getElementById('manage-habits-list');
+            if (!listEl) return;
+            const habits = S.habits || [];
+            
+            listEl.innerHTML = habits.map((h, i) => `
+                <div class="manage-habit-item" data-id="${h.id}">
+                    <span style="font-family:'JetBrains Mono', monospace; font-weight:700; color:var(--text-dim); width:20px;">${i + 1}</span>
+                    <input type="text" class="manage-input" value="${h.name}">
+                    <button class="btn-mini-action" data-manage-action="up" data-idx="${i}" title="Move Up">⬆️</button>
+                    <button class="btn-mini-action" data-manage-action="down" data-idx="${i}" title="Move Down">⬇️</button>
+                    <button class="btn-mini-action delete" data-manage-action="delete" data-id="${h.id}" title="Delete">🗑️</button>
+                </div>
+            `).join('');
+        }
+
+        function addHabit(name) {
+            S.habits = S.habits || [];
+            S.habits.push({ id: 'h' + Date.now(), name: name.trim() });
+            queueCloudSync();
+            renderAll();
+        }
+
+        function renameHabit(id, newName) {
+            const habit = (S.habits || []).find(h => h.id === id);
+            if (habit && newName && newName.trim()) {
+                habit.name = newName.trim();
+                queueCloudSync();
+                renderAll();
+            }
+        }
+
+        function deleteHabit(id) {
+            if (confirm('Are you sure you want to delete this habit?')) {
+                S.habits = (S.habits || []).filter(h => h.id !== id);
+                queueCloudSync();
+                renderAll();
+            }
+        }
+
         function renderAll() {
             renderMonthTabs();
             renderHabitSheet();
             renderDashboard();
         }
 
-        // Event Listeners
+        // Table Event Delegation
         document.getElementById('habits-sheet').addEventListener('change', (e) => {
             const target = e.target;
             if (target.classList.contains('habit-chk')) {
@@ -1382,99 +1645,157 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
         });
 
         document.getElementById('habits-sheet').addEventListener('click', (e) => {
-            const btn = e.target.closest('.btn-mini');
-            if (!btn) return;
-            const action = btn.dataset.action;
-            const habitId = btn.dataset.id;
-
-            if (action === 'delete') {
-                if (confirm('Delete this habit?')) {
-                    S.habits = (S.habits || []).filter(h => h.id !== habitId);
-                    queueCloudSync();
-                    renderAll();
+            const btn = e.target.closest('.btn-mini-action');
+            if (btn) {
+                const action = btn.dataset.action;
+                const habitId = btn.dataset.id;
+                if (action === 'delete') {
+                    deleteHabit(habitId);
+                } else if (action === 'rename') {
+                    const habit = (S.habits || []).find(h => h.id === habitId);
+                    if (habit) {
+                        const newName = prompt('Rename habit:', habit.name);
+                        if (newName) renameHabit(habitId, newName);
+                    }
                 }
-            } else if (action === 'rename') {
+                return;
+            }
+
+            const titleText = e.target.closest('.habit-title-text');
+            if (titleText) {
+                const habitId = titleText.dataset.renameId;
                 const habit = (S.habits || []).find(h => h.id === habitId);
                 if (habit) {
                     const newName = prompt('Rename habit:', habit.name);
-                    if (newName && newName.trim()) {
-                        habit.name = newName.trim();
-                        queueCloudSync();
-                        renderAll();
-                    }
+                    if (newName) renameHabit(habitId, newName);
                 }
             }
         });
 
-        // Top Actions
-        document.getElementById('btn-add-habit').addEventListener('click', () => {
-            const name = prompt('Enter new habit name (e.g. 🏋️ Workout):');
+        // Manage Habits Modal Interactions
+        const modalManage = document.getElementById('modal-manage-habits');
+        document.getElementById('btn-manage-habits').onclick = () => {
+            renderManageModal();
+            modalManage.classList.add('active');
+        };
+        document.getElementById('btn-close-manage').onclick = () => {
+            // Save names from modal inputs
+            const items = document.querySelectorAll('.manage-habit-item');
+            items.forEach(item => {
+                const id = item.dataset.id;
+                const input = item.querySelector('.manage-input');
+                const habit = (S.habits || []).find(h => h.id === id);
+                if (habit && input && input.value.trim()) {
+                    habit.name = input.value.trim();
+                }
+            });
+            queueCloudSync();
+            renderAll();
+            modalManage.classList.remove('active');
+        };
+        document.getElementById('btn-add-modal-habit').onclick = () => {
+            const name = prompt('New Habit Name:');
             if (name && name.trim()) {
-                S.habits = S.habits || [];
-                S.habits.push({ id: 'h' + Date.now(), name: name.trim() });
+                addHabit(name);
+                renderManageModal();
+            }
+        };
+
+        // Emoji Suggestions click
+        document.getElementById('emoji-chips').addEventListener('click', (e) => {
+            const chip = e.target.closest('.emoji-chip');
+            if (chip) {
+                addHabit(chip.textContent.trim());
+                renderManageModal();
+            }
+        });
+
+        // Manage List internal actions (reorder, delete)
+        document.getElementById('manage-habits-list').addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-mini-action');
+            if (!btn) return;
+            const action = btn.dataset.manageAction;
+            const idx = parseInt(btn.dataset.idx, 10);
+            const id = btn.dataset.id;
+
+            if (action === 'delete') {
+                deleteHabit(id);
+                renderManageModal();
+            } else if (action === 'up' && idx > 0) {
+                const temp = S.habits[idx];
+                S.habits[idx] = S.habits[idx - 1];
+                S.habits[idx - 1] = temp;
                 queueCloudSync();
+                renderManageModal();
+                renderAll();
+            } else if (action === 'down' && idx < S.habits.length - 1) {
+                const temp = S.habits[idx];
+                S.habits[idx] = S.habits[idx + 1];
+                S.habits[idx + 1] = temp;
+                queueCloudSync();
+                renderManageModal();
                 renderAll();
             }
         });
 
-        document.getElementById('btn-edit-mode').addEventListener('click', () => {
-            isEditing = !isEditing;
-            document.getElementById('btn-edit-mode').textContent = isEditing ? '✅ Done Editing' : '✏️ Edit Habits';
-            const sheetEl = document.getElementById('habits-sheet');
-            if (sheetEl) {
-                if (isEditing) sheetEl.classList.add('editing-mode');
-                else sheetEl.classList.remove('editing-mode');
-            }
-        });
+        // Top Quick Add button
+        document.getElementById('btn-quick-add').onclick = () => {
+            const name = prompt('Enter habit name (e.g. 🏋️ Gym, 📚 Reading):');
+            if (name && name.trim()) addHabit(name);
+        };
 
-        document.getElementById('btn-sync-now').addEventListener('click', () => {
+        document.getElementById('btn-sync-now').onclick = () => {
             syncFromSupabase();
-        });
+        };
 
-        // Month / Year Inputs
+        // Month & Year Selector
         const selectMonth = document.getElementById('select-month');
         selectMonth.innerHTML = MONTH_NAMES.map((m, i) => `<option value="${i}">${m}</option>`).join('');
         selectMonth.value = currentMonth;
-        selectMonth.addEventListener('change', (e) => {
+        selectMonth.onchange = (e) => {
             currentMonth = parseInt(e.target.value, 10);
             renderAll();
-        });
+        };
 
         const inputYear = document.getElementById('input-year');
         inputYear.value = currentYear;
-        inputYear.addEventListener('change', (e) => {
+        inputYear.onchange = (e) => {
             currentYear = parseInt(e.target.value, 10) || currentYear;
             renderAll();
-        });
+        };
 
         // Month Tabs Click
-        document.getElementById('month-tabs').addEventListener('click', (e) => {
+        document.getElementById('month-tabs').onclick = (e) => {
             const btn = e.target.closest('.tab-btn');
             if (!btn) return;
             currentMonth = parseInt(btn.dataset.month, 10);
             selectMonth.value = currentMonth;
             renderAll();
-        });
+        };
 
-        // Modal Controls
-        const modal = document.getElementById('modal-supabase');
-        document.getElementById('cloud-pill').addEventListener('click', () => {
-            modal.classList.add('active');
-        });
-        document.getElementById('btn-close-modal').addEventListener('click', () => {
-            modal.classList.remove('active');
-        });
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.classList.remove('active');
-        });
-        document.getElementById('btn-copy-sql').addEventListener('click', () => {
+        // Supabase Modal
+        const modalCloud = document.getElementById('modal-supabase');
+        document.getElementById('cloud-pill').onclick = () => {
+            modalCloud.classList.add('active');
+        };
+        document.getElementById('btn-close-cloud-modal').onclick = () => {
+            modalCloud.classList.remove('active');
+        };
+        modalCloud.onclick = (e) => {
+            if (e.target === modalCloud) modalCloud.classList.remove('active');
+        };
+        modalManage.onclick = (e) => {
+            if (e.target === modalManage) modalManage.classList.remove('active');
+        };
+
+        document.getElementById('btn-copy-sql').onclick = () => {
             const sql = document.getElementById('sql-snippet').textContent;
             navigator.clipboard.writeText(sql).then(() => {
                 const btn = document.getElementById('btn-copy-sql');
                 btn.textContent = '✅ Copied!';
                 setTimeout(() => { btn.textContent = '📋 Copy SQL'; }, 2000);
             });
-        });
+        };
 
         // Initial Boot
         renderAll();
