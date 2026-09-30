@@ -1956,11 +1956,9 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
                 html += `
                     <tr class="habit-row" draggable="true" data-index="${idx}" data-id="${h.id}">
                         <td class="td-habit-name">
-                            <span class="drag-handle" title="Drag to reorder">⠿</span>
+                            <span class="drag-handle" title="Hold and drag to reorder">⠿</span>
                             <span class="habit-title-text" data-rename-id="${h.id}" title="Click to rename">${h.name}</span>
                             <div class="habit-row-actions">
-                                <button class="btn-mini-action" data-action="up" data-index="${idx}" title="Move Up">⬆️</button>
-                                <button class="btn-mini-action" data-action="down" data-index="${idx}" title="Move Down">⬇️</button>
                                 <button class="btn-mini-action" data-action="rename" data-id="${h.id}" title="Rename">✏️</button>
                                 <button class="btn-mini-action delete" data-action="delete" data-id="${h.id}" title="Delete">🗑️</button>
                             </div>
@@ -2094,6 +2092,42 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
                         renderAll();
                     }
                 });
+
+                // Touch support for mobile hold & move
+                const handle = row.querySelector('.drag-handle');
+                if (handle) {
+                    handle.addEventListener('touchstart', (e) => {
+                        draggedIndex = parseInt(row.dataset.index, 10);
+                        row.classList.add('dragging');
+                    }, { passive: true });
+
+                    handle.addEventListener('touchmove', (e) => {
+                        const touch = e.touches[0];
+                        const element = document.elementFromPoint(touch.clientX, touch.clientY);
+                        const targetRow = element ? element.closest('.habit-row') : null;
+                        document.querySelectorAll('.habit-row').forEach(r => r.classList.remove('drag-over'));
+                        if (targetRow && targetRow !== row) {
+                            targetRow.classList.add('drag-over');
+                        }
+                    }, { passive: true });
+
+                    handle.addEventListener('touchend', (e) => {
+                        row.classList.remove('dragging');
+                        const changedTouch = e.changedTouches[0];
+                        const element = document.elementFromPoint(changedTouch.clientX, changedTouch.clientY);
+                        const targetRow = element ? element.closest('.habit-row') : null;
+                        document.querySelectorAll('.habit-row').forEach(r => r.classList.remove('drag-over'));
+                        if (targetRow) {
+                            const targetIndex = parseInt(targetRow.dataset.index, 10);
+                            if (draggedIndex !== null && !isNaN(targetIndex) && draggedIndex !== targetIndex) {
+                                const item = S.habits.splice(draggedIndex, 1)[0];
+                                S.habits.splice(targetIndex, 0, item);
+                                queueCloudSync();
+                                renderAll();
+                            }
+                        }
+                    });
+                }
             });
         }
 
