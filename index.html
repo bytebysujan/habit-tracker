@@ -58,7 +58,7 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
-            max-width: 1750px;
+            max-width: 1850px;
             margin-inline: auto;
             user-select: none;
         }
@@ -358,12 +358,12 @@
         /* Main Workspace: Spreadsheet & Side Dashboard */
         .main-workspace {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) 380px;
+            grid-template-columns: minmax(0, 1.25fr) minmax(460px, 520px);
             gap: 16px;
             align-items: start;
         }
 
-        @media (max-width: 1380px) {
+        @media (max-width: 1320px) {
             .main-workspace {
                 grid-template-columns: 1fr;
             }
@@ -687,12 +687,19 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
+            min-width: 0;
+        }
+
+        .analysis-table-container {
+            width: 100%;
+            overflow: visible;
         }
 
         .analysis-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 13px;
+            table-layout: auto;
         }
 
         .analysis-table th {
@@ -701,15 +708,26 @@
             font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
-            padding: 8px 10px;
+            padding: 10px 8px;
             border-bottom: 1px solid var(--border);
             text-align: left;
+            white-space: nowrap;
         }
 
         .analysis-table td {
-            padding: 8px 10px;
+            padding: 9px 8px;
             border-bottom: 1px solid var(--border);
             color: var(--text-main);
+            vertical-align: middle;
+        }
+
+        .analysis-habit-name {
+            font-weight: 600;
+            color: #fff;
+            white-space: normal;
+            word-break: break-word;
+            line-height: 1.35;
+            padding-right: 6px;
         }
 
         .progress-track {
@@ -717,6 +735,7 @@
             border-radius: 4px;
             height: 14px;
             width: 100%;
+            min-width: 80px;
             overflow: hidden;
             position: relative;
             border: 1px solid var(--border);
@@ -741,7 +760,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 8px 12px;
+            padding: 9px 12px;
             background: var(--bg-darker);
             border: 1px solid var(--border);
             border-radius: var(--radius-md);
@@ -765,9 +784,8 @@
         .ranking-name {
             flex: 1;
             font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            white-space: normal;
+            word-break: break-word;
             padding-right: 10px;
         }
 
@@ -1036,17 +1054,19 @@
             <!-- Habit Analysis Table -->
             <div class="panel-box">
                 <div class="panel-header">Progress Analysis</div>
-                <div class="table-responsive" style="max-height: 320px;">
-                    <table class="analysis-table" id="analysis-table">
-                        <!-- Populated dynamically via JS -->
-                    </table>
+                <div class="panel-content" style="padding: 0;">
+                    <div class="analysis-table-container">
+                        <table class="analysis-table" id="analysis-table">
+                            <!-- Populated dynamically via JS -->
+                        </table>
+                    </div>
                 </div>
             </div>
 
             <!-- Top 10 Habits -->
             <div class="panel-box">
                 <div class="panel-header">Top 10 Habits</div>
-                <div class="panel-content" style="padding: 10px;">
+                <div class="panel-content" style="padding: 12px;">
                     <div class="ranking-list" id="ranking-list">
                         <!-- Populated dynamically via JS -->
                     </div>
@@ -1485,31 +1505,35 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
 
             // Analysis Table
             let analysisHtml = `
-                <tr>
-                    <th style="min-width:130px;">Habit</th>
-                    <th style="text-align:center;">Goal</th>
-                    <th style="text-align:center;">Actual</th>
-                    <th style="text-align:center;">Left</th>
-                    <th style="width:80px;">Progress</th>
-                    <th style="text-align:right;">%</th>
-                </tr>
+                <thead>
+                    <tr>
+                        <th style="width:38%;">Habit</th>
+                        <th style="text-align:center; width:12%;">Goal</th>
+                        <th style="text-align:center; width:12%;">Actual</th>
+                        <th style="text-align:center; width:12%;">Left</th>
+                        <th style="width:20%;">Progress</th>
+                        <th style="text-align:right; width:6%;">%</th>
+                    </tr>
+                </thead>
+                <tbody>
             `;
             stats.habitStats.forEach(hs => {
                 analysisHtml += `
                     <tr>
-                        <td style="font-weight:600; max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${hs.habit.name}">${hs.habit.name}</td>
-                        <td style="text-align:center; font-family:'JetBrains Mono', monospace;">${stats.totalDays}</td>
-                        <td style="text-align:center; font-family:'JetBrains Mono', monospace; font-weight:700;">${hs.count}</td>
-                        <td style="text-align:center; font-family:'JetBrains Mono', monospace; color:var(--text-dim);">${hs.left}</td>
+                        <td class="analysis-habit-name">${hs.habit.name}</td>
+                        <td style="text-align:center; font-family:'JetBrains Mono', monospace; font-size:13px;">${stats.totalDays}</td>
+                        <td style="text-align:center; font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:700;">${hs.count}</td>
+                        <td style="text-align:center; font-family:'JetBrains Mono', monospace; font-size:13px; color:var(--text-dim);">${hs.left}</td>
                         <td>
                             <div class="progress-track">
                                 <div class="progress-fill" style="width:${hs.pct}%;"></div>
                             </div>
                         </td>
-                        <td style="text-align:right; font-family:'JetBrains Mono', monospace; font-weight:700;">${hs.pct}%</td>
+                        <td style="text-align:right; font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:700;">${hs.pct}%</td>
                     </tr>
                 `;
             });
+            analysisHtml += `</tbody>`;
             document.getElementById('analysis-table').innerHTML = analysisHtml;
 
             // Top 10 Habits Ranking
