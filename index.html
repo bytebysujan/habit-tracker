@@ -542,10 +542,11 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
         const SUPABASE_KEY = "sb_publishable_X1CAEDfrCyR9WiiBZ1jNxg_swxVPH2Q";
         const DOC_ID = "default"; // Profile / partition ID
 
-        let supabase = null;
-        if (window.supabase) {
+        // Avoid variable name collision with window.supabase from CDN
+        let sbClient = null;
+        if (window.supabase && typeof window.supabase.createClient === 'function') {
             try {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             } catch (err) {
                 console.error("Failed to initialize Supabase client:", err);
             }
@@ -559,21 +560,25 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
         const now = new Date();
         let Y = now.getFullYear(), M = now.getMonth();
         let syncTimeout = null;
-        let isCloudSynced = false;
 
-        function updateCloudBadge(status, text, showModalOnClick = false) {
+        function updateCloudBadge(status, text) {
             const dot = document.getElementById('status-dot');
             const statusText = document.getElementById('status-text');
-            dot.className = 'dot ' + status;
-            statusText.textContent = text;
+            if (dot) dot.className = 'dot ' + status;
+            if (statusText) statusText.textContent = text;
         }
 
         function loadLocal() {
             try {
                 const r = localStorage.getItem('ht1');
-                if (r) return JSON.parse(r);
+                if (r) {
+                    const parsed = JSON.parse(r);
+                    if (parsed && Array.isArray(parsed.habits)) {
+                        return parsed;
+                    }
+                }
             } catch (e) {
-                console.warn('Local storage error:', e);
+                console.warn('Local storage read error:', e);
             }
             return { habits: DEF.map((n, i) => ({ id: 'h' + i, name: n })), checks: {}, extra: {} };
         }
@@ -588,14 +593,14 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
 
         // Supabase Cloud Sync
         async function fetchFromSupabase() {
-            if (!supabase) {
+            if (!sbClient) {
                 updateCloudBadge('error', 'Offline / Local Only');
                 return;
             }
 
-            updateCloudBadge('syncing', 'Syncing with Supabase...');
+            updateCloudBadge('syncing', 'Syncing...');
             try {
-                const { data, error } = await supabase
+                const { data, error } = await sbClient
                     .from('habit_tracker')
                     .select('*')
                     .eq('id', DOC_ID)
@@ -603,35 +608,35 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
 
                 if (error) {
                     if (error.code === 'PGRST205' || error.message?.includes('schema cache') || error.message?.includes('relation') || error.message?.includes('not find the table')) {
-                        updateCloudBadge('error', '⚠️ Setup Table (Click here)');
+                        updateCloudBadge('error', '⚠️ Setup Table');
                     } else {
-                        updateCloudBadge('error', 'Sync error: ' + (error.message || 'Unknown'));
+                        updateCloudBadge('error', 'Sync error');
                     }
+                    console.warn("Supabase fetch error:", error);
                     return;
                 }
 
-                if (data && data.data && data.data.habits) {
+                if (data && data.data && Array.isArray(data.data.habits)) {
                     S = data.data;
                     saveLocal();
                     renderAll();
                     updateCloudBadge('synced', '☁️ Cloud Synced');
-                    isCloudSynced = true;
                 } else {
-                    // Record doesn't exist yet, push local data to Supabase
-                    await pushToSupabase(true);
+                    // Table exists but record doesn't exist yet, push initial state
+                    await pushToSupabase();
                 }
             } catch (err) {
-                console.error("Supabase fetch error:", err);
+                console.error("Supabase fetch exception:", err);
                 updateCloudBadge('error', 'Cloud Disconnected');
             }
         }
 
-        async function pushToSupabase(immediate = false) {
-            if (!supabase) return;
+        async function pushToSupabase() {
+            if (!sbClient) return;
             
-            updateCloudBadge('syncing', 'Saving to Cloud...');
+            updateCloudBadge('syncing', 'Saving...');
             try {
-                const { error } = await supabase
+                const { error } = await sbClient
                     .from('habit_tracker')
                     .upsert({
                         id: DOC_ID,
@@ -641,14 +646,13 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
 
                 if (error) {
                     if (error.code === 'PGRST205' || error.message?.includes('schema cache') || error.message?.includes('not find the table')) {
-                        updateCloudBadge('error', '⚠️ Setup Table (Click here)');
+                        updateCloudBadge('error', '⚠️ Setup Table');
                     } else {
                         updateCloudBadge('error', 'Sync Error');
                     }
                     console.error("Supabase upsert error:", error);
                 } else {
                     updateCloudBadge('synced', '☁️ Cloud Synced');
-                    isCloudSynced = true;
                 }
             } catch (err) {
                 console.error("Failed to push to Supabase:", err);
@@ -662,22 +666,20 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
             updateCloudBadge('syncing', 'Saving...');
             syncTimeout = setTimeout(() => {
                 pushToSupabase();
-            }, 350);
+            }, 300);
         }
 
         // Realtime Subscription
         function setupRealtime() {
-            if (!supabase) return;
+            if (!sbClient) return;
             try {
-                supabase
+                sbClient
                     .channel('habit_tracker_realtime')
                     .on(
                         'postgres_changes',
                         { event: '*', schema: 'public', table: 'habit_tracker', filter: `id=eq.${DOC_ID}` },
                         (payload) => {
-                            if (payload.new && payload.new.data && payload.new.data.habits) {
-                                const remoteUpdated = new Date(payload.new.updated_at || 0).getTime();
-                                // Merge / update local state
+                            if (payload.new && payload.new.data && Array.isArray(payload.new.data.habits)) {
                                 S = payload.new.data;
                                 saveLocal();
                                 renderAll();
@@ -687,7 +689,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
                     )
                     .subscribe();
             } catch (e) {
-                console.warn("Realtime subscription failed:", e);
+                console.warn("Realtime subscription error:", e);
             }
         }
 
@@ -705,17 +707,32 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
 
         function renderStats() {
             const { n, per, done, goal, daily } = stats(); const p = goal ? done / goal : 0;
-            $('#kp').innerHTML = `<div class="kpi"><b>${goal}</b><span>Goal</span></div><div class="kpi"><b>${done}</b><span>Completed</span></div><div class="kpi"><b>${goal - done}</b><span>Left</span></div>`;
-            const r = 42, c = 2 * Math.PI * r;
-            $('#donut').innerHTML = `<svg width="120" height="120" viewBox="0 0 120 120"><circle cx="60" cy="60" r="${r}" fill="none" stroke="var(--line)" stroke-width="16"/><circle cx="60" cy="60" r="${r}" fill="none" stroke="var(--fill)" stroke-width="16" stroke-dasharray="${c * p} ${c}" transform="rotate(-90 60 60)"/><text x="60" y="66" text-anchor="middle" font-size="18" font-weight="700" fill="var(--ink)">${(p * 100).toFixed(1)}%</text></svg>`;
-            const w = n * 20; let b = `<svg viewBox="0 0 ${w} 130" width="100%" preserveAspectRatio="none" style="height:150px">`;
-            [0, .5, 1].forEach(g => b += `<line x1="0" x2="${w}" y1="${110 - g * 100}" y2="${110 - g * 100}" stroke="var(--line)"/>`);
-            daily.forEach((v, i) => { b += `<rect x="${i * 20 + 3}" y="${110 - v * 100}" width="14" height="${v * 100}" fill="var(--fill)"/>`; if ((i + 1) % 5 == 0 || i == 0) b += `<text x="${i * 20 + 10}" y="126" font-size="10" text-anchor="middle" fill="var(--mut)">${i + 1}</text>` });
-            $('#bars').innerHTML = b + '</svg>';
-            let t = `<table class="a"><tr><th>Habit</th><th>Goal</th><th>Done</th><th>Left</th><th style="width:30%">Progress</th><th>%</th></tr>`;
-            per.forEach(x => t += `<tr><td>${x.h.name}</td><td>${n}</td><td>${x.a}</td><td>${n - x.a}</td><td><div class="pb"><i style="width:${x.p}%"></i></div></td><td>${x.p}%</td></tr>`);
-            $('#an').innerHTML = t + '</table>';
-            $('#top').innerHTML = [...per].sort((a, b) => b.a - a.a).slice(0, 10).map((x, i) => `<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);align-items:center"><b style="width:22px;color:var(--mut)">${i + 1}</b><span style="flex:1;font-weight:500">${x.h.name}</span><span style="font-weight:600">${x.p}%</span></div>`).join('')
+            const kpEl = $('#kp');
+            if (kpEl) {
+                kpEl.innerHTML = `<div class="kpi"><b>${goal}</b><span>Goal</span></div><div class="kpi"><b>${done}</b><span>Completed</span></div><div class="kpi"><b>${goal - done}</b><span>Left</span></div>`;
+            }
+            const donutEl = $('#donut');
+            if (donutEl) {
+                const r = 42, c = 2 * Math.PI * r;
+                donutEl.innerHTML = `<svg width="120" height="120" viewBox="0 0 120 120"><circle cx="60" cy="60" r="${r}" fill="none" stroke="var(--line)" stroke-width="16"/><circle cx="60" cy="60" r="${r}" fill="none" stroke="var(--fill)" stroke-width="16" stroke-dasharray="${c * p} ${c}" transform="rotate(-90 60 60)"/><text x="60" y="66" text-anchor="middle" font-size="18" font-weight="700" fill="var(--ink)">${(p * 100).toFixed(1)}%</text></svg>`;
+            }
+            const barsEl = $('#bars');
+            if (barsEl) {
+                const w = n * 20; let b = `<svg viewBox="0 0 ${w} 130" width="100%" preserveAspectRatio="none" style="height:150px">`;
+                [0, .5, 1].forEach(g => b += `<line x1="0" x2="${w}" y1="${110 - g * 100}" y2="${110 - g * 100}" stroke="var(--line)"/>`);
+                daily.forEach((v, i) => { b += `<rect x="${i * 20 + 3}" y="${110 - v * 100}" width="14" height="${v * 100}" fill="var(--fill)"/>`; if ((i + 1) % 5 == 0 || i == 0) b += `<text x="${i * 20 + 10}" y="126" font-size="10" text-anchor="middle" fill="var(--mut)">${i + 1}</text>` });
+                barsEl.innerHTML = b + '</svg>';
+            }
+            const anEl = $('#an');
+            if (anEl) {
+                let t = `<table class="a"><tr><th>Habit</th><th>Goal</th><th>Done</th><th>Left</th><th style="width:30%">Progress</th><th>%</th></tr>`;
+                per.forEach(x => t += `<tr><td>${x.h.name}</td><td>${n}</td><td>${x.a}</td><td>${n - x.a}</td><td><div class="pb"><i style="width:${x.p}%"></i></div></td><td>${x.p}%</td></tr>`);
+                anEl.innerHTML = t + '</table>';
+            }
+            const topEl = $('#top');
+            if (topEl) {
+                topEl.innerHTML = [...per].sort((a, b) => b.a - a.a).slice(0, 10).map((x, i) => `<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);align-items:center"><b style="width:22px;color:var(--mut)">${i + 1}</b><span style="flex:1;font-weight:500">${x.h.name}</span><span style="font-weight:600">${x.p}%</span></div>`).join('');
+            }
         }
 
         function renderGrid() {
@@ -735,7 +752,8 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
                 for (let d = 1; d <= n; d++) t += `<td class="c"><input class="x" inputmode="decimal" data-k="${k}" data-d="${d}" value="${(ex[k] && ex[k][d]) ?? ''}"></td>`;
                 t += '</tr>';
             });
-            $('#grid').innerHTML = t + '</table>';
+            const gridEl = $('#grid');
+            if (gridEl) gridEl.innerHTML = t + '</table>';
         }
 
         $('#grid').addEventListener('change', e => {
@@ -766,11 +784,13 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
             }
             if (d.ren) {
                 const h = S.habits.find(h => h.id === d.ren);
-                const v = prompt('Rename habit', h.name);
-                if (v && v.trim()) {
-                    h.name = v.trim();
-                    triggerSync();
-                    renderAll();
+                if (h) {
+                    const v = prompt('Rename habit', h.name);
+                    if (v && v.trim()) {
+                        h.name = v.trim();
+                        triggerSync();
+                        renderAll();
+                    }
                 }
             }
         });
@@ -795,43 +815,63 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
             fetchFromSupabase();
         };
 
-        $('#mo').innerHTML = MN.map((m, i) => `<option value="${i}">${m}</option>`).join('');
-        $('#mo').value = M;
-        $('#yr').value = Y;
-        $('#mo').onchange = e => { M = +e.target.value; renderAll(); };
-        $('#yr').onchange = e => { Y = +e.target.value || Y; renderAll(); };
+        const moEl = $('#mo');
+        const yrEl = $('#yr');
+        if (moEl) {
+            moEl.innerHTML = MN.map((m, i) => `<option value="${i}">${m}</option>`).join('');
+            moEl.value = M;
+            moEl.onchange = e => { M = +e.target.value; renderAll(); };
+        }
+        if (yrEl) {
+            yrEl.value = Y;
+            yrEl.onchange = e => { Y = +e.target.value || Y; renderAll(); };
+        }
 
         // Modal interactions
         const modal = $('#setup-modal');
-        $('#cloud-status').onclick = () => {
-            modal.classList.add('active');
-        };
-        $('#modal-close').onclick = () => {
-            modal.classList.remove('active');
-        };
-        modal.onclick = e => {
-            if (e.target === modal) modal.classList.remove('active');
-        };
+        const cloudStatusEl = $('#cloud-status');
+        if (cloudStatusEl) {
+            cloudStatusEl.onclick = () => {
+                if (modal) modal.classList.add('active');
+            };
+        }
+        const modalCloseEl = $('#modal-close');
+        if (modalCloseEl) {
+            modalCloseEl.onclick = () => {
+                if (modal) modal.classList.remove('active');
+            };
+        }
+        if (modal) {
+            modal.onclick = e => {
+                if (e.target === modal) modal.classList.remove('active');
+            };
+        }
 
-        $('#copy-sql-btn').onclick = () => {
-            const sql = $('#sql-code').textContent;
-            navigator.clipboard.writeText(sql).then(() => {
-                $('#copy-sql-btn').textContent = '✅ Copied!';
-                setTimeout(() => { $('#copy-sql-btn').textContent = '📋 Copy SQL'; }, 2000);
-            });
-        };
+        const copyBtn = $('#copy-sql-btn');
+        if (copyBtn) {
+            copyBtn.onclick = () => {
+                const sql = $('#sql-code').textContent;
+                navigator.clipboard.writeText(sql).then(() => {
+                    copyBtn.textContent = '✅ Copied!';
+                    setTimeout(() => { copyBtn.textContent = '📋 Copy SQL'; }, 2000);
+                });
+            };
+        }
 
-        $('#retry-sync-btn').onclick = () => {
-            modal.classList.remove('active');
-            fetchFromSupabase();
-        };
+        const retryBtn = $('#retry-sync-btn');
+        if (retryBtn) {
+            retryBtn.onclick = () => {
+                if (modal) modal.classList.remove('active');
+                fetchFromSupabase();
+            };
+        }
 
         function renderAll() {
             renderGrid();
             renderStats();
         }
 
-        // Initialize
+        // Initialize & render immediately
         renderAll();
         fetchFromSupabase();
         setupRealtime();
