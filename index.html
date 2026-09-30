@@ -377,10 +377,88 @@
             box-shadow: var(--shadow-sm);
         }
 
+        /* Sheet Card Header Toolbar with Scroll Controls */
+        .sheet-toolbar {
+            background: var(--bg-header);
+            border-bottom: 1px solid var(--border);
+            padding: 8px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .sheet-toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sheet-toolbar-title {
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #fff;
+        }
+
+        .sheet-toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .week-jump-btn {
+            background: var(--bg-darker);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .week-jump-btn:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-light);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+        .scroll-nav-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: var(--transition);
+        }
+
+        .scroll-nav-btn:hover {
+            background: #ffffff;
+            color: #000000;
+            transform: translateY(-1px);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .scroll-nav-btn:active {
+            transform: scale(0.95);
+        }
+
         .table-responsive {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             max-width: 100%;
+            scroll-behavior: smooth;
         }
 
         /* Spreadsheet Table */
@@ -1040,9 +1118,21 @@
 
     <!-- Main Workspace: Tracker Spreadsheet & Side Analysis -->
     <main class="main-workspace">
-        <!-- Tracker Spreadsheet Table -->
+        <!-- Tracker Spreadsheet Table Card with Top Scroll Toolbar -->
         <div class="tracker-sheet-card">
-            <div class="table-responsive">
+            <div class="sheet-toolbar">
+                <div class="sheet-toolbar-left">
+                    <span class="sheet-toolbar-title" id="sheet-title-count">My Habits</span>
+                    <div style="display:flex; gap:4px;" id="week-jump-container">
+                        <!-- Populated dynamically with W1, W2, W3... -->
+                    </div>
+                </div>
+                <div class="sheet-toolbar-right">
+                    <button class="scroll-nav-btn" id="btn-scroll-left" title="Scroll Left">◀ Left</button>
+                    <button class="scroll-nav-btn" id="btn-scroll-right" title="Scroll Right">Right ▶</button>
+                </div>
+            </div>
+            <div class="table-responsive" id="table-wrap">
                 <table class="sheet-table" id="habits-sheet">
                     <!-- Populated dynamically via JS -->
                 </table>
@@ -1556,18 +1646,30 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
             const habits = S.habits || [];
             const extraData = (S.extra && S.extra[ymKey()]) || { mood: {}, sleep: {} };
 
+            // Update sheet title count
+            const titleCountEl = document.getElementById('sheet-title-count');
+            if (titleCountEl) titleCountEl.textContent = `My Habits (${habits.length})`;
+
             // Group days into weeks
             const weekGroups = [];
             for (let d = 1; d <= totalDays; d += 7) {
                 const weekNum = Math.floor(d / 7) + 1;
                 const span = Math.min(7, totalDays - d + 1);
-                weekGroups.push({ weekNum, span });
+                weekGroups.push({ weekNum, span, startDay: d });
+            }
+
+            // Render Week Jump buttons in toolbar
+            const weekJumpEl = document.getElementById('week-jump-container');
+            if (weekJumpEl) {
+                weekJumpEl.innerHTML = weekGroups.map(w => `
+                    <button class="week-jump-btn" data-start-day="${w.startDay}">W${w.weekNum}</button>
+                `).join('');
             }
 
             let html = `<thead>`;
             
             // Header Row 1: Week groupings
-            html += `<tr><th rowspan="3" class="th-habit-corner">My Habits (${habits.length})</th>`;
+            html += `<tr><th rowspan="3" class="th-habit-corner">Habit Name</th>`;
             weekGroups.forEach(w => {
                 html += `<th colspan="${w.span}" class="th-week-group">Week ${w.weekNum}</th>`;
             });
@@ -1625,7 +1727,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
                         </div>
                     </td>
                     <td colspan="${totalDays}" style="background:var(--bg-darker); color:var(--text-dim); font-size:12px; text-align:left; padding-left:14px;">
-                        Tip: Use ⬆️ ⬇️ to reorder, ✏️ to rename, or 🗑️ to delete habits directly.
+                        Tip: Use <strong>◀ Left / Right ▶</strong> buttons above to scroll days, or click <strong>W1 - W5</strong> to jump to any week.
                     </td>
                 </tr>
             `;
@@ -1872,6 +1974,23 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
 
         document.getElementById('btn-sync-now').onclick = () => {
             syncFromSupabase();
+        };
+
+        // Scroll Buttons & Week Jump in Sheet Toolbar
+        const tableWrap = document.getElementById('table-wrap');
+        document.getElementById('btn-scroll-left').onclick = () => {
+            if (tableWrap) tableWrap.scrollBy({ left: -280, behavior: 'smooth' });
+        };
+        document.getElementById('btn-scroll-right').onclick = () => {
+            if (tableWrap) tableWrap.scrollBy({ left: 280, behavior: 'smooth' });
+        };
+
+        document.getElementById('week-jump-container').onclick = (e) => {
+            const btn = e.target.closest('.week-jump-btn');
+            if (!btn || !tableWrap) return;
+            const startDay = parseInt(btn.dataset.startDay, 10);
+            const targetScroll = (startDay - 1) * 36;
+            tableWrap.scrollTo({ left: targetScroll, behavior: 'smooth' });
         };
 
         // Month & Year Selector
