@@ -84,7 +84,7 @@
         }
 
         .system-title {
-            font-size: 17px;
+            font-size: 18px;
             font-weight: 800;
             letter-spacing: 0.08em;
             text-transform: uppercase;
@@ -92,16 +92,6 @@
             display: flex;
             align-items: center;
             gap: 10px;
-        }
-
-        .system-badge {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 3px 8px;
-            border-radius: 6px;
-            letter-spacing: 0.05em;
         }
 
         .status-pill {
@@ -164,7 +154,7 @@
             background: var(--bg-card);
             border: 1px solid var(--border);
             color: var(--text-main);
-            padding: 8px 14px;
+            padding: 8px 16px;
             border-radius: var(--radius-md);
             font-size: 13px;
             font-weight: 600;
@@ -209,13 +199,6 @@
         .btn-action.danger:hover {
             background: var(--accent-red-hover);
             box-shadow: 0 0 14px rgba(244, 63, 94, 0.4);
-        }
-
-        .btn-action.active-mode {
-            background: #3b82f6;
-            color: #fff;
-            border-color: #60a5fa;
-            box-shadow: 0 0 14px rgba(59, 130, 246, 0.5);
         }
 
         /* Top Analytics Dashboard Grid */
@@ -467,7 +450,7 @@
         }
 
         .habit-row:hover {
-            background: rgba(255, 255, 255, 0.02);
+            background: rgba(255, 255, 255, 0.03);
         }
 
         .habit-row.dragging {
@@ -529,12 +512,11 @@
         .habit-row-actions {
             display: inline-flex;
             gap: 4px;
-            opacity: 0.35;
+            opacity: 0.55;
             transition: opacity 0.2s ease;
         }
 
-        .habit-row:hover .habit-row-actions,
-        .edit-mode-active .habit-row-actions {
+        .habit-row:hover .habit-row-actions {
             opacity: 1;
         }
 
@@ -858,7 +840,7 @@
             background: linear-gradient(145deg, #151820, #0f1217);
             border: 1px solid var(--border-light);
             border-radius: var(--radius-xl);
-            max-width: 540px;
+            max-width: 500px;
             width: 100%;
             padding: 26px;
             box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 255, 255, 0.05);
@@ -915,34 +897,6 @@
             margin-top: 22px;
         }
 
-        .manage-habit-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: var(--bg-darker);
-            border: 1px solid var(--border);
-            padding: 8px 12px;
-            border-radius: var(--radius-md);
-            margin-bottom: 8px;
-            transition: transform 0.2s ease;
-        }
-
-        .manage-input {
-            flex: 1;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            color: #fff;
-            padding: 6px 10px;
-            border-radius: var(--radius-sm);
-            font-size: 13px;
-            outline: none;
-            font-family: inherit;
-        }
-
-        .manage-input:focus {
-            border-color: #fff;
-        }
-
         .emoji-chips {
             display: flex;
             flex-wrap: wrap;
@@ -992,7 +946,6 @@
             <div class="system-title">
                 ⚡ Habit Tracker
             </div>
-            <span class="system-badge">PRO DASHBOARD</span>
             <div class="status-pill" id="cloud-pill" title="Supabase Cloud Connection Status">
                 <span class="pulse-dot" id="cloud-dot"></span>
                 <span id="cloud-label">Connecting to Cloud...</span>
@@ -1000,8 +953,6 @@
         </div>
         <div class="system-controls">
             <button class="btn-action primary" id="btn-quick-add">+ Add Habit</button>
-            <button class="btn-action" id="btn-toggle-edit-mode">✏️ Edit Habits</button>
-            <button class="btn-action" id="btn-manage-habits">⚙️ Reorder & Manage</button>
             <button class="btn-action" id="btn-sync-now">🔄 Sync Now</button>
         </div>
     </header>
@@ -1137,39 +1088,6 @@
         </div>
     </div>
 
-    <!-- Reorder & Manage Habits Modal -->
-    <div class="modal-overlay" id="modal-manage-habits">
-        <div class="modal-dialog">
-            <h3>⚙️ Reorder & Manage Habits</h3>
-            <p>Use the <strong>⬆️ Move Up</strong> and <strong>⬇️ Move Down</strong> buttons or rename/delete any habit below.</p>
-            
-            <div style="margin-bottom: 14px;">
-                <label style="font-size: 12px; font-weight: 700; color: var(--text-dim); text-transform: uppercase;">Quick Add Emoji Suggestions:</label>
-                <div class="emoji-chips" id="emoji-chips">
-                    <span class="emoji-chip">⏰ Wake 05:00</span>
-                    <span class="emoji-chip">💪 Gym Workout</span>
-                    <span class="emoji-chip">📖 Reading</span>
-                    <span class="emoji-chip">🧘 Meditation</span>
-                    <span class="emoji-chip">💧 3L Water</span>
-                    <span class="emoji-chip">🚶 10k Steps</span>
-                    <span class="emoji-chip">🥦 Clean Diet</span>
-                    <span class="emoji-chip">📵 No Social Media</span>
-                    <span class="emoji-chip">💻 Coding / Projects</span>
-                    <span class="emoji-chip">✍️ Journaling</span>
-                </div>
-            </div>
-
-            <div id="manage-habits-list">
-                <!-- Populated dynamically -->
-            </div>
-
-            <div class="modal-footer">
-                <button class="btn-action" id="btn-add-modal-habit">+ Add Habit Row</button>
-                <button class="btn-action primary" id="btn-close-manage">Save & Close</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Supabase Setup Modal -->
     <div class="modal-overlay" id="modal-supabase">
         <div class="modal-dialog">
@@ -1231,7 +1149,6 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
 
         // State Management
         let S = loadLocalState();
-        let isEditMode = false;
         let draggedIndex = null;
         const today = new Date();
         let currentYear = today.getFullYear();
@@ -1270,7 +1187,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
             if (label) label.textContent = text;
         }
 
-        // Custom Modal Helpers (Replaces default browser alert/confirm/prompt)
+        // Custom Modal Helpers
         let confirmCallback = null;
         function showConfirmDialog({ title, message, okText, okDanger, onConfirm }) {
             document.getElementById('confirm-title').innerHTML = title || '⚠️ Confirmation';
@@ -1651,13 +1568,13 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
             habits.forEach((h, idx) => {
                 const checks = getChecks(h.id);
                 html += `
-                    <tr class="habit-row" draggable="${isEditMode ? 'true' : 'false'}" data-index="${idx}" data-id="${h.id}">
+                    <tr class="habit-row" draggable="true" data-index="${idx}" data-id="${h.id}">
                         <td class="td-habit-name">
-                            <span class="drag-handle" title="Drag to reorder" style="${isEditMode ? 'display:inline-flex;' : 'display:none;'}">⠿</span>
+                            <span class="drag-handle" title="Drag to reorder">⠿</span>
                             <span class="habit-title-text" data-rename-id="${h.id}" title="Click to rename">${h.name}</span>
                             <div class="habit-row-actions">
-                                <button class="btn-mini-action" data-action="up" data-index="${idx}" title="Move Up (Reorder)">⬆️</button>
-                                <button class="btn-mini-action" data-action="down" data-index="${idx}" title="Move Down (Reorder)">⬇️</button>
+                                <button class="btn-mini-action" data-action="up" data-index="${idx}" title="Move Up">⬆️</button>
+                                <button class="btn-mini-action" data-action="down" data-index="${idx}" title="Move Down">⬇️</button>
                                 <button class="btn-mini-action" data-action="rename" data-id="${h.id}" title="Rename">✏️</button>
                                 <button class="btn-mini-action delete" data-action="delete" data-id="${h.id}" title="Delete">🗑️</button>
                             </div>
@@ -1684,7 +1601,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
                         </div>
                     </td>
                     <td colspan="${totalDays}" style="background:var(--bg-darker); color:var(--text-dim); font-size:12px; text-align:left; padding-left:14px;">
-                        Tip: Click <strong>"✏️ Edit Habits"</strong> to reorder using ⬆️ ⬇️ buttons or drag rows directly.
+                        Tip: Use ⬆️ ⬇️ to reorder, ✏️ to rename, or 🗑️ to delete habits directly.
                     </td>
                 </tr>
             `;
@@ -1729,8 +1646,6 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
             const sheetEl = document.getElementById('habits-sheet');
             if (sheetEl) {
                 sheetEl.innerHTML = html;
-                if (isEditMode) sheetEl.classList.add('edit-mode-active');
-                else sheetEl.classList.remove('edit-mode-active');
                 setupDragAndDrop();
             }
 
@@ -1796,22 +1711,6 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
                 <button class="tab-btn ${i === currentMonth ? 'active' : ''}" data-month="${i}">
                     ${m}
                 </button>
-            `).join('');
-        }
-
-        function renderManageModal() {
-            const listEl = document.getElementById('manage-habits-list');
-            if (!listEl) return;
-            const habits = S.habits || [];
-            
-            listEl.innerHTML = habits.map((h, i) => `
-                <div class="manage-habit-item" data-id="${h.id}">
-                    <span style="font-family:'JetBrains Mono', monospace; font-weight:700; color:var(--text-dim); width:20px;">${i + 1}</span>
-                    <input type="text" class="manage-input" value="${h.name}">
-                    <button class="btn-mini-action" data-manage-action="up" data-idx="${i}" title="Move Up (Reorder)">⬆️</button>
-                    <button class="btn-mini-action" data-manage-action="down" data-idx="${i}" title="Move Down (Reorder)">⬇️</button>
-                    <button class="btn-mini-action delete" data-manage-action="delete" data-id="${h.id}" title="Delete">🗑️</button>
-                </div>
             `).join('');
         }
 
@@ -1936,102 +1835,6 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
             }
         });
 
-        // Toggle Edit Habits Mode button
-        document.getElementById('btn-toggle-edit-mode').onclick = () => {
-            isEditMode = !isEditMode;
-            const btn = document.getElementById('btn-toggle-edit-mode');
-            if (isEditMode) {
-                btn.textContent = '✅ Done Reordering';
-                btn.classList.add('active-mode');
-            } else {
-                btn.textContent = '✏️ Edit Habits';
-                btn.classList.remove('active-mode');
-            }
-            renderHabitSheet();
-        };
-
-        // Manage Habits Modal Interactions
-        const modalManage = document.getElementById('modal-manage-habits');
-        document.getElementById('btn-manage-habits').onclick = () => {
-            renderManageModal();
-            modalManage.classList.add('active');
-        };
-        document.getElementById('btn-close-manage').onclick = () => {
-            const items = document.querySelectorAll('.manage-habit-item');
-            items.forEach(item => {
-                const id = item.dataset.id;
-                const input = item.querySelector('.manage-input');
-                const habit = (S.habits || []).find(h => h.id === id);
-                if (habit && input && input.value.trim()) {
-                    habit.name = input.value.trim();
-                }
-            });
-            queueCloudSync();
-            renderAll();
-            modalManage.classList.remove('active');
-        };
-        document.getElementById('btn-add-modal-habit').onclick = () => {
-            showPromptDialog({
-                title: '➕ Add New Habit',
-                message: 'Enter habit name or pick an emoji suggestion below:',
-                placeholder: 'e.g. 🏋️ Workout, 📚 Read 20 pages',
-                showEmojis: true,
-                onConfirm: (name) => {
-                    addHabit(name);
-                    renderManageModal();
-                }
-            });
-        };
-
-        // Emoji Suggestions click in Manage modal
-        document.getElementById('emoji-chips').addEventListener('click', (e) => {
-            const chip = e.target.closest('.emoji-chip');
-            if (chip) {
-                addHabit(chip.textContent.trim());
-                renderManageModal();
-            }
-        });
-
-        // Manage List internal actions (reorder, delete)
-        document.getElementById('manage-habits-list').addEventListener('click', (e) => {
-            const btn = e.target.closest('.btn-mini-action');
-            if (!btn) return;
-            const action = btn.dataset.manageAction;
-            const idx = parseInt(btn.dataset.idx, 10);
-            const id = btn.dataset.id;
-
-            if (action === 'delete') {
-                const habit = (S.habits || []).find(h => h.id === id);
-                const habitName = habit ? habit.name : 'this habit';
-                showConfirmDialog({
-                    title: '🗑️ Delete Habit',
-                    message: `Are you sure you want to delete <strong>"${habitName}"</strong>?`,
-                    okText: 'Delete',
-                    okDanger: true,
-                    onConfirm: () => {
-                        S.habits = (S.habits || []).filter(h => h.id !== id);
-                        queueCloudSync();
-                        renderManageModal();
-                        renderAll();
-                    }
-                });
-            } else if (action === 'up' && idx > 0) {
-                const temp = S.habits[idx];
-                S.habits[idx] = S.habits[idx - 1];
-                S.habits[idx - 1] = temp;
-                queueCloudSync();
-                renderManageModal();
-                renderAll();
-            } else if (action === 'down' && idx < S.habits.length - 1) {
-                const temp = S.habits[idx];
-                S.habits[idx] = S.habits[idx + 1];
-                S.habits[idx + 1] = temp;
-                queueCloudSync();
-                renderManageModal();
-                renderAll();
-            }
-        });
-
         // Top Quick Add button
         document.getElementById('btn-quick-add').onclick = () => {
             showPromptDialog({
@@ -2082,9 +1885,6 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.habit_tracker;</div>
         };
         modalCloud.onclick = (e) => {
             if (e.target === modalCloud) modalCloud.classList.remove('active');
-        };
-        modalManage.onclick = (e) => {
-            if (e.target === modalManage) modalManage.classList.remove('active');
         };
 
         document.getElementById('btn-copy-sql').onclick = () => {
